@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html >
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        var line_coordinate = [];
+        var canvas;
+        var context;
+        var paint = false;
+        function postdata(raw_data) {
+            var data = JSON.stringify(raw_data);
+            console.log(data);
+            $.ajax({
+              type: "POST",
+              url: "http://localhost:8000",
+              data: data,
+              success: function(){},
+              dataType: "json",
+              contentType : "application/json"
+            });
+        }
+        window.onload = function () {
+            canvas = document.getElementById("pCanvas");
+            context = canvas.getContext("2d");
+        };
+        function mousedownHandler(e) {
+            var x = e.clientX;
+            var y = e.clientY;
+            context.beginPath();
+            context.lineWidth = 2;
+            context.strokeStyle = 'white';
+            context.moveTo(x, y);
+            paint = true;
+        }
+        function mousemoveHandler(e) {
+            if (paint) {
+            	// console.log(e.clientX, e.clientY);
+                line_coordinate.push([e.clientX, e.clientY]);
+                var x = e.clientX;
+                var y = e.clientY;
+                context.lineTo(x, y);
+                context.stroke();
+            }
+        }
+        function mouseupHandler(e) {
+            paint = false;
+            postdata(line_coordinate);
+            line_coordinate = [];
+        }
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</head>
+<body >
+<canvas id="pCanvas" width=560;  height=360; 
+        onmousedown="mousedownHandler(event)" 
+        onmousemove="mousemoveHandler(event)"
+        onmouseup="mouseupHandler(event)"
+        style="cursor:pointer;background:black;"       
+         >
+</canvas>
+<hr />
+<button onclick="clearCanvas()" style="width:200px;" >清空</button>
+</body>
+</html>
