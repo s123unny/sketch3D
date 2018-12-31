@@ -40,7 +40,6 @@ class geometric(object):
 			L[i], R[i] = i-1, i+1
 		L[0], R[Len-1] = Len-1, 0
 
-		self.orig = self.points
 		tri = Delaunay(self.points)
 		for j, s in enumerate(tri.simplices):
 			s = np.sort(s)
@@ -53,11 +52,10 @@ class geometric(object):
 		self.tri = Delaunay(self.points)
 
 
-
 	def plot_show(self):
 		plt.triplot(self.points[:,0], self.points[:,1], self.tri.simplices)
 		plt.plot(self.points[:,0], self.points[:,1], 'o')
-		for j, p in enumerate(self.orig):
+		for j, p in enumerate(self.points):
 			plt.text(p[0]-0.03, p[1]+0.03, j, ha='right') # label the points
 		plt.show()
 
