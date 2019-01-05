@@ -80,11 +80,8 @@ class geometric(object):
 				track = False
 				prev = -1
 				while keepgoing:
-					# print ("current",current)
 					for idx, tri_num in enumerate(tri.neighbors[current]):
-						# print (tri_num)
 						if tri_num != -1 and tri_num != prev and Tri[tri_num] != 1:
-							# print ("found",tri_num)
 							point_num = tri.simplices[tri_num]
 							
 							# newone, oldone
@@ -104,7 +101,7 @@ class geometric(object):
 									needcheck = np.append(needcheck, point_num[2])
 									newone = point_num[2]
 								oldone = point_num[1]
-							else:
+							elif point_num[1] in LR[point_num[2]]:
 								if point_num[1] not in needcheck:
 									needcheck = np.append(needcheck, point_num[1])
 									newone = point_num[1]
@@ -112,6 +109,10 @@ class geometric(object):
 									needcheck = np.append(needcheck, point_num[2])
 									newone = point_num[2]
 								oldone = point_num[0]
+							else:
+								for i in point_num:
+									if i not in needcheck:
+										needcheck = np.append(needcheck, i)
 							radius = distance(self.points[oldone], self.points[newone]) / 2
 							center = self.points[[oldone, newone]].mean(axis=0)
 
@@ -120,9 +121,11 @@ class geometric(object):
 							if point_num[0] not in LR[point_num[1]] and point_num[2] not in LR[point_num[1]] and point_num[2] not in LR[point_num[0]]:
 								keepgoing = False
 								add.append(self.points[point_num].mean(axis=0))
-								inner.append(tri_num)
+								if tri_num not in inner:
+									inner.append(tri_num)
 								print ("inner", self.points[point_num].mean(axis=0))
 
+								# 扇形
 								for element in needcheck:
 									plt.plot([self.points[element,0], add[len(add)-1][0]],[self.points[element,1], add[len(add)-1][1]])
 									Other.append([self.points[element], add[len(add)-1]])
@@ -150,13 +153,15 @@ class geometric(object):
 				if len(spine) != 0:
 					totalSpine.append(spine)
 					spine = np.asarray(spine)
-					plt.plot(spine[:,0], spine[:,1])
+					plt.plot(spine[:,0], spine[:,1], "o")
 		self.add = np.asarray(add)
 		# self.points = np.concatenate((self.points, add), axis=0)			
 		self.tri = tri
 
 		for element in inner:
 			for tri_num in tri.neighbors[element]:
+				first = True
+				print ("=====", element, "======")
 				spine = []
 				spine.append(self.points[tri.simplices[element]].mean(axis=0))
 				prev = element
@@ -165,27 +170,40 @@ class geometric(object):
 					print (current)
 					point_num = tri.simplices[current]
 					if point_num[0] in LR[point_num[1]]:
-						if point_num[0] not in tri.simplices[current]:
+						if point_num[0] not in tri.simplices[prev]:
 							newone = point_num[0]
+							otherone = point_num[1]
 						else:
 							newone = point_num[1]
+							otherone = point_num[0]
 						oldone = point_num[2]
 					elif point_num[0] in LR[point_num[2]]:
-						if point_num[0] not in tri.simplices[current]:
+						if point_num[0] not in tri.simplices[prev]:
 							newone = point_num[0]
+							otherone = point_num[2]
 						else:
 							newone = point_num[2]
+							otherone = point_num[0]
 						oldone = point_num[1]
 					elif point_num[1] in LR[point_num[2]]:
-						if point_num[1] not in tri.simplices[current]:
+						if point_num[1] not in tri.simplices[prev]:
 							newone = point_num[1]
+							otherone = point_num[2]
 						else:
 							newone = point_num[2]
+							otherone = point_num[1]
 						oldone = point_num[0]
 					else:
 						spine.append( self.points[tri.simplices[current]].mean(axis=0) )
 						break
+					if first == True:
+						first = False
+						tmp = self.points[[oldone, otherone]].mean(axis=0)
+						spine.append( tmp )
+						plt.plot([self.points[oldone,0], tmp[0]],[self.points[oldone,1], tmp[1]])
+						plt.plot([self.points[otherone,0], tmp[0]],[self.points[otherone,1], tmp[1]])
 					tmp = self.points[[oldone, newone]].mean(axis=0)
+					print (tmp)
 					spine.append( tmp )
 					for i in tri.simplices[current]:
 						plt.plot([self.points[i,0], tmp[0]],[self.points[i,1], tmp[1]])
@@ -196,7 +214,7 @@ class geometric(object):
 							prev = current
 							current = i
 							break
-				if len(spine) != 0:
+				if len(spine) > 1:
 					totalSpine.append(spine)
 					spine = np.asarray(spine)
 					print (spine)
