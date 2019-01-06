@@ -21,7 +21,6 @@ class geometric(object):
 				add = self.points[[i,i+1]].mean(axis=0)
 				self.points = np.insert(self.points, i+1, add, axis=0)
 		cut = distance(self.points[-1], self.points[0])
-		print (self.points[0], self.points[-1], cut)
 		if cut > 30.0:
 			add = self.points[[0,-1]].mean(axis=0)
 			self.points = np.insert(self.points, 0, add, axis=0)
@@ -37,9 +36,8 @@ class geometric(object):
 	def po2tri(self):
 		
 		self.cleanpoints()
-		print (self.points)
+		# print (self.points)
 		
-
 		Len = len(self.points)
 		LR = []
 		for i in range(Len):
@@ -62,7 +60,7 @@ class geometric(object):
 
 		TLen = len(tri.simplices)
 		Tri = np.zeros(TLen)
-		print ("TLen",TLen)
+		# print ("TLen",TLen)
 		add = []
 		inner = []
 		totalSpine = []
@@ -126,7 +124,7 @@ class geometric(object):
 								add.append(self.points[point_num].mean(axis=0))
 								if [tri_num, True] not in inner:
 									inner.append([tri_num, True])
-								print ("inner", self.points[point_num].mean(axis=0))
+								# print ("inner", self.points[point_num].mean(axis=0))
 
 								# 扇形
 								key = str(add[len(add)-1])
@@ -134,6 +132,7 @@ class geometric(object):
 									init = spine2other[key]
 								else:
 									init = []
+								# print (needcheck)
 								init += list(needcheck)
 								spine2other[key] = init
 								break
@@ -155,7 +154,7 @@ class geometric(object):
 										init = []
 									init += list(needcheck)
 									spine2other[key] = init
-									print ("circle", center)
+									# print ("circle", center)
 									keepgoing = False
 									break
 							
@@ -210,6 +209,14 @@ class geometric(object):
 							otherone = point_num[1]
 						oldone = point_num[0]
 					else:
+						tmp = self.points[tri.simplices[current]].mean(axis=0)
+						key = str(tmp)
+						if key in spine2other:
+							init = spine2other[key]
+						else:
+							init = []
+						init += list(tri.simplices[current])
+						spine2other[key] = init
 						spine.append( self.points[tri.simplices[current]].mean(axis=0) )
 						break
 					if first == True:
@@ -256,10 +263,10 @@ class geometric(object):
 		plt.plot(self.add[:,0], self.add[:,1], 'o')
 		for j, p in enumerate(self.points):
 			plt.text(p[0]-0.03, p[1]+0.03, j, ha='right') # label the points
-		# for j, s in enumerate(self.tri.simplices):
-		# 	p = self.points[s].mean(axis=0)
-		# 	plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
-		print ("=======")
+		for j, s in enumerate(self.tri.simplices):
+			p = self.points[s].mean(axis=0)
+			plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
+		# print ("=======")
 		Len = len(self.points)
 		for i in self.totalSpine:
 			# print (i)
@@ -280,6 +287,7 @@ class geometric(object):
 					self.spine2other[key] = init
 					for j in self.spine2other[key]:
 						plt.plot([self.points[j,0],element[0]], [self.points[j,1],element[1]], color='#FFDD44')
+		# print (self.totalSpine)
 		# print (self.spine2other)
 		plt.show()
 
