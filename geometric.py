@@ -6,11 +6,8 @@ import math
 def distance(p1, p2):
 	return math.sqrt(abs(p1[0]-p2[0])**2+abs(p1[1]-p2[1])**2)
 
-def midpoint(p1, p2):
-    return [(p1[0]+p2[0])/2, (p1[1]+p2[1])/2]
-
 def almostEqual(p1, p2, EPSILON=20):
-	return (abs(p1[0]-p2[0])+abs(p1[1]-p2[1])) < EPSILON
+	return math.sqrt(abs(p1[0]-p2[0])**2+abs(p1[1]-p2[1])**2) < EPSILON
 
 class geometric(object):
 	"""docstring for geometric"""
@@ -20,9 +17,14 @@ class geometric(object):
 
 	def cleanpoints(self):
 		for i in range(len(self.points)-1):
-			if distance(self.points[i], self.points[i+1]) > 50:
+			if distance(self.points[i], self.points[i+1]) > 50.0:
 				add = self.points[[i,i+1]].mean(axis=0)
 				self.points = np.insert(self.points, i+1, add, axis=0)
+		cut = distance(self.points[-1], self.points[0])
+		print (self.points[0], self.points[-1], cut)
+		if cut > 30.0:
+			add = self.points[[0,-1]].mean(axis=0)
+			self.points = np.insert(self.points, 0, add, axis=0)
 		Len = len(self.points)-1
 		idx = 0
 		while idx < Len:
@@ -34,10 +36,10 @@ class geometric(object):
 
 	def po2tri(self):
 		
-		# self.tri = Delaunay(self.points)
-		
-		self.points = np.asarray([[716,488],[710,488],[702,487],[693,482],[679,476],[666,467],[656,457],[645,445],[635,429],[628,412],[622,391],[620,375],[620,348],[620,340],[632,309],[647,290],[683,261],[712,244],[738,233],[762,227],[778,224],[805,223],[824,223],[846,226],[859,233],[871,241],[879,250],[886,260],[893,276],[895,288],[896,303],[897,317],[897,338],[891,365],[887,380],[881,395],[875,408],[871,417],[867,424],[862,431],[858,437],[854,441],[849,446],[845,450],[840,454],[838,455],[836,456],[835,456],[834,457],[833,458],[831,458],[829,459],[826,460],[823,460],[821,461],[820,461],[819,461]])
 		self.cleanpoints()
+		print (self.points)
+		
+
 		Len = len(self.points)
 		LR = []
 		for i in range(Len):
@@ -45,10 +47,16 @@ class geometric(object):
 		LR[0] = [Len-1,1]
 		LR[Len-1] = [Len-2, 0]
 
-		# print ("LR", LR)
-
-		
 		tri = Delaunay(self.points)
+
+		# plt.triplot(self.points[:,0], self.points[:,1], tri.simplices)
+		# plt.plot(self.points[:,0], self.points[:,1])#, 'o')
+		# for j, p in enumerate(self.points):
+		# 	plt.text(p[0]-0.03, p[1]+0.03, j, ha='right')
+		# for j, s in enumerate(tri.simplices):
+		# 	p = self.points[s].mean(axis=0)
+		# 	plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
+		# plt.show()
 		# print (tri.simplices)
 		# print (tri.neighbors)
 
@@ -59,31 +67,28 @@ class geometric(object):
 		inner = []
 		totalSpine = []
 		Other = []
+		spine2other = {}
 		
 		for j, s in enumerate(tri.simplices):
-			# s = np.sort(s)
 			spine = []
 			needcheck = s
 			if all(x in LR[s[2]] for x in [s[0], s[1]]) or all(x in LR[s[1]] for x in [s[0], s[2]]) or all(x in LR[s[0]] for x in [s[2], s[1]]):
-				# if all(x in LR[s[2]] for x in [s[0], s[1]]):
-				# 	spine.append(self.points[s[2]])
-				# 	spine.append(self.points[[s[0],s[1]]].mean(axis=0))
-				# elif all(x in LR[s[1]] for x in [s[0], s[2]]):
-				# 	spine.append(self.points[s[1]])
-				# 	spine.append(self.points[[s[0],s[2]]].mean(axis=0))
-				# else:
-				# 	spine.append(self.points[s[0]])
-				# 	spine.append(self.points[[s[2],s[1]]].mean(axis=0))
 				Tri[j] = 1
 				current = j
 				keepgoing = True;
 				track = False
 				prev = -1
+				# print ("=====",j,"======")
 				while keepgoing:
 					for idx, tri_num in enumerate(tri.neighbors[current]):
 						if tri_num != -1 and tri_num != prev and Tri[tri_num] != 1:
 							point_num = tri.simplices[tri_num]
+
+							if all(x in LR[point_num[2]] for x in [point_num[0], point_num[1]]) or all(x in LR[point_num[1]] for x in [point_num[0], point_num[2]]) or all(x in LR[point_num[0]] for x in [point_num[2], point_num[1]]):
+								keepgoing = False
+								break
 							
+							# print ("current", current, "tri_num",tri_num)
 							# newone, oldone
 							if point_num[0] in LR[point_num[1]]:
 								if point_num[0] not in needcheck:
@@ -113,61 +118,72 @@ class geometric(object):
 								for i in point_num:
 									if i not in needcheck:
 										needcheck = np.append(needcheck, i)
-							radius = distance(self.points[oldone], self.points[newone]) / 2
-							center = self.points[[oldone, newone]].mean(axis=0)
 
 							#check inner triangle
 							# print ("point_num", point_num)
 							if point_num[0] not in LR[point_num[1]] and point_num[2] not in LR[point_num[1]] and point_num[2] not in LR[point_num[0]]:
 								keepgoing = False
 								add.append(self.points[point_num].mean(axis=0))
-								if tri_num not in inner:
-									inner.append(tri_num)
+								if [tri_num, True] not in inner:
+									inner.append([tri_num, True])
 								print ("inner", self.points[point_num].mean(axis=0))
 
 								# 扇形
-								for element in needcheck:
-									plt.plot([self.points[element,0], add[len(add)-1][0]],[self.points[element,1], add[len(add)-1][1]])
-									Other.append([self.points[element], add[len(add)-1]])
+								key = str(add[len(add)-1])
+								if key in spine2other:
+									init = spine2other[key]
+								else:
+									init = []
+								init += list(needcheck)
+								spine2other[key] = init
 								break
 
-							if track == True:
-								spine.append(center)
+							radius = distance(self.points[oldone], self.points[newone]) / 2
+							center = self.points[[oldone, newone]].mean(axis=0)
 							#check circle
 							for p in needcheck:
 								if distance(self.points[p], center) > radius:
-									# keepgoing = False
-									track = True
+									spine.append(center)
 									add.append(center)
+									inner.append([tri_num, False])
+
+									#扇形
+									key = str(center)
+									if key in spine2other:
+										init = spine2other[key]
+									else:
+										init = []
+									init += list(needcheck)
+									spine2other[key] = init
 									print ("circle", center)
-									# break
+									keepgoing = False
+									break
 							
 							prev = current
 							current = tri_num
 							Tri[tri_num] = 1
 							break
 						elif tri_num != -1 and tri_num != prev:
-							# print ("quit", tri_num, current)
 							keepgoing = False
 							break
-				if len(spine) != 0:
+				if len(spine) > 1:
 					totalSpine.append(spine)
 					spine = np.asarray(spine)
-					plt.plot(spine[:,0], spine[:,1], "o")
+					# plt.plot(spine[:,0], spine[:,1], "o")
 		self.add = np.asarray(add)
-		# self.points = np.concatenate((self.points, add), axis=0)			
 		self.tri = tri
 
 		for element in inner:
-			for tri_num in tri.neighbors[element]:
+			for tri_num in tri.neighbors[element[0]]:
+				Tri[element[0]] = 1
 				first = True
-				print ("=====", element, "======")
+				# print ("=====", element, "======")
 				spine = []
-				spine.append(self.points[tri.simplices[element]].mean(axis=0))
-				prev = element
+				if element[1]:
+					spine.append(self.points[tri.simplices[element[0]]].mean(axis=0))
+				prev = element[0]
 				current = tri_num
 				while Tri[current] == 0:
-					print (current)
 					point_num = tri.simplices[current]
 					if point_num[0] in LR[point_num[1]]:
 						if point_num[0] not in tri.simplices[prev]:
@@ -200,13 +216,23 @@ class geometric(object):
 						first = False
 						tmp = self.points[[oldone, otherone]].mean(axis=0)
 						spine.append( tmp )
-						plt.plot([self.points[oldone,0], tmp[0]],[self.points[oldone,1], tmp[1]])
-						plt.plot([self.points[otherone,0], tmp[0]],[self.points[otherone,1], tmp[1]])
+						key = str(tmp)
+						if key in spine2other:
+							init = spine2other[key]
+						else:
+							init = []
+						init.append(oldone)
+						init.append(otherone)
+						spine2other[key] = init
 					tmp = self.points[[oldone, newone]].mean(axis=0)
-					print (tmp)
 					spine.append( tmp )
-					for i in tri.simplices[current]:
-						plt.plot([self.points[i,0], tmp[0]],[self.points[i,1], tmp[1]])
+					key = str(tmp)
+					if key in spine2other:
+						init = spine2other[key]
+					else:
+						init = []
+					init += list(tri.simplices[current])
+					spine2other[key] = init
 					nei = tri.neighbors[current]
 					Tri[current] = 1
 					for i in nei:
@@ -217,18 +243,43 @@ class geometric(object):
 				if len(spine) > 1:
 					totalSpine.append(spine)
 					spine = np.asarray(spine)
-					print (spine)
-					plt.plot(spine[:,0], spine[:,1])
-		print (Tri)
+					# print (spine)
+					# plt.plot(spine[:,0], spine[:,1])
+		# print (Tri)
+		# print (totalSpine)
+		self.totalSpine = totalSpine
+		self.spine2other = spine2other
 
 	def plot_show(self):
 		# plt.triplot(self.points[:,0], self.points[:,1], self.tri.simplices)
 		plt.plot(self.points[:,0], self.points[:,1])#, 'o')
 		plt.plot(self.add[:,0], self.add[:,1], 'o')
-		# for j, p in enumerate(self.points):
-		# 	plt.text(p[0]-0.03, p[1]+0.03, j, ha='right') # label the points
+		for j, p in enumerate(self.points):
+			plt.text(p[0]-0.03, p[1]+0.03, j, ha='right') # label the points
 		# for j, s in enumerate(self.tri.simplices):
 		# 	p = self.points[s].mean(axis=0)
 		# 	plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
+		print ("=======")
+		Len = len(self.points)
+		for i in self.totalSpine:
+			# print (i)
+			plt.plot(np.asarray(i)[:,0], np.asarray(i)[:,1], color='skyblue')
+			for element in i:
+				key = str(element)
+				if key in self.spine2other:
+					init = self.spine2other[key]
+					init = list(sorted(set(init)))
+					if 0 in init and Len-1 in init:
+						current = Len-1
+						while current in init:
+							current -= 1
+						front, last = [], []
+						for x in init:
+							(last, front)[x < current].append(x)
+						init = last + front
+					self.spine2other[key] = init
+					for j in self.spine2other[key]:
+						plt.plot([self.points[j,0],element[0]], [self.points[j,1],element[1]], color='#FFDD44')
+		# print (self.spine2other)
 		plt.show()
 
