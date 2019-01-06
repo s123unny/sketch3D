@@ -27,9 +27,9 @@ class rt(object):
 			for j in i:
 				key = str(j)
 				neibor = self.spine2other[key]
-				count = len(neibor)
-				for k in neibor:
-					dis = 0
+				count = len(neibor) 
+				dis = 0
+				for k in neibor:	
 					dis += distance(j, self.points[k])
 				dis = dis / count
 				list_for_append = []
