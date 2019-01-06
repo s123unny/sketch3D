@@ -4,13 +4,15 @@ var context;
 var paint = false;
 function postdata(raw_data) {
     var data = JSON.stringify(raw_data);
-    console.log(data);
+    // console.log(data);
     $.ajax({
       type: "POST",
       url: "http://localhost:8000",
       data: data,
-      success: function(){},
-      dataType: "json",
+      success: function(data){
+        console.log(data);
+      },
+      dataType: "text",
       contentType : "application/json"
     });
 }
@@ -30,7 +32,7 @@ function mousedownHandler(e) {
 }
 function mousemoveHandler(e) {
     if (paint) {
-    	console.log(e.clientX, e.clientY);
+    	// console.log(e.clientX, e.clientY);
         line_coordinate.push([e.clientX, e.clientY]);
         var x = e.clientX;
         var y = e.clientY;

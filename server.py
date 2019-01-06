@@ -13,6 +13,9 @@ for idx, element in enumerate(content):
 	contentDic[element] = fp.read()
 	fp.close()
 
+def default(o):
+    if isinstance(o, np.int32): return int(o) 
+
 class S(BaseHTTPRequestHandler):
 	def _set_headers(self):
 		self.send_response(200)
@@ -44,11 +47,14 @@ class S(BaseHTTPRequestHandler):
 		data = json.loads(post_data)
 		polygon = geo.geometric(data)
 		polygon.po2tri()
+		polygon.plot_show() #plot the polygon 
 		threed = rittai.rt(polygon)
 		threed.run()
-		# polygon.plot_show() #plot the polygon 
+		
+		print (polygon.spine2other)
+		res = json.dumps(polygon.spine2other, default=default)
 		self._set_headers()
-		self.wfile.write("<html><body><h1>POST!</h1></body></html>".encode("utf-8"))
+		self.wfile.write(res.encode("utf-8"))
 
 def run(server_class=HTTPServer, handler_class=S, port=8000):
 	server_address = ('', port)

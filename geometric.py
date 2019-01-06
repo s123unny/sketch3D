@@ -259,18 +259,18 @@ class geometric(object):
 
 	def plot_show(self):
 		# plt.triplot(self.points[:,0], self.points[:,1], self.tri.simplices)
-		plt.plot(self.points[:,0], self.points[:,1])#, 'o')
-		plt.plot(self.add[:,0], self.add[:,1], 'o')
-		for j, p in enumerate(self.points):
-			plt.text(p[0]-0.03, p[1]+0.03, j, ha='right') # label the points
-		for j, s in enumerate(self.tri.simplices):
-			p = self.points[s].mean(axis=0)
-			plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
+		# plt.plot(self.points[:,0], self.points[:,1])#, 'o')
+		# plt.plot(self.add[:,0], self.add[:,1], 'o')
+		# for j, p in enumerate(self.points):
+		# 	plt.text(p[0]-0.03, p[1]+0.03, j, ha='right') # label the points
+		# for j, s in enumerate(self.tri.simplices):
+		# 	p = self.points[s].mean(axis=0)
+		# 	plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
 		# print ("=======")
 		Len = len(self.points)
 		for i in self.totalSpine:
 			# print (i)
-			plt.plot(np.asarray(i)[:,0], np.asarray(i)[:,1], color='skyblue')
+			# plt.plot(np.asarray(i)[:,0], np.asarray(i)[:,1], color='skyblue')
 			for element in i:
 				key = str(element)
 				if key in self.spine2other:
@@ -285,9 +285,9 @@ class geometric(object):
 							(last, front)[x < current].append(x)
 						init = last + front
 					self.spine2other[key] = init
-					for j in self.spine2other[key]:
-						plt.plot([self.points[j,0],element[0]], [self.points[j,1],element[1]], color='#FFDD44')
+					# for j in self.spine2other[key]:
+					# 	plt.plot([self.points[j,0],element[0]], [self.points[j,1],element[1]], color='#FFDD44')
 		# print (self.totalSpine)
 		# print (self.spine2other)
-		plt.show()
+		# plt.show()
 
