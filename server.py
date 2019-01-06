@@ -3,6 +3,7 @@ import socketserver
 import json
 import numpy as np
 import geometric as geo
+import rittai
 
 #init content
 contentDic = {}
@@ -43,7 +44,9 @@ class S(BaseHTTPRequestHandler):
 		data = json.loads(post_data)
 		polygon = geo.geometric(data)
 		polygon.po2tri()
-		polygon.plot_show() #plot the polygon 
+		threed = rittai.rt(polygon)
+		threed.run()
+		# polygon.plot_show() #plot the polygon 
 		self._set_headers()
 		self.wfile.write("<html><body><h1>POST!</h1></body></html>".encode("utf-8"))
 
