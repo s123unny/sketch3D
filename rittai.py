@@ -1,5 +1,5 @@
 from scipy.spatial import Delaunay
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -166,17 +166,34 @@ class rt(object):
 		'''
 		leng = len(self.totalSpine)
 		for i in range(leng):
+			print("i = " + str(i))
 			length = len(self.totalSpine[i])
-			for time in range(2):
+			#print(self.spine2other[str(self.totalSpine[i][0])])
+			neibor_check = np.zeros(len(self.spine2other[str(self.totalSpine[i][0])]))
+			#print(neibor_check)
+			flag_for_repeat = 0
+			time = 0
+			while time < 2:
 				j = 0
+				flag_for_last = 0
 				key = str(self.totalSpine[i][j])
 				neibor = self.spine2other[key]
-				index = neibor[0]
-				flag_for_last = 0
+				if flag_for_repeat == 0:
+					index = neibor[0]
+				else:
+					index = index
+				flag1 = 0
+				flag2 = 0
 				while j < length:
-					print(j, length)
+					print("j = " + str(j) + ", length = " + str(length) + ", index = " + str(index))
+					print("flag1 and flag 2 = " + str(flag1) + ", " + str(flag2))
+					#if j < length - 1:
+						#print(self.spine2other[str(self.totalSpine[i][j+1])])
 					if flag_for_last == 1:
+						time += 1
 						break
+					key = str(self.totalSpine[i][j])
+					neibor = self.spine2other[key]
 					while True:
 						if time == 0:
 							way = 1
@@ -184,18 +201,46 @@ class rt(object):
 							way = -1
 						if index == 0 and way == -1:
 							way = self.length - 1
+							print("zero to end")
 						if index == self.length - 1 and way == 1:
 							way = 1 - self.length
+							print("end to zero")
 						if index+way not in neibor:
-							if j == length - 1:
+							flag1 = 1
+							if (flag1 == 1 and flag2 == 1) or (j == length - 1):
 								flag_for_last = 1
+								if np.sum(neibor_check) != len(self.spine2other[str(self.totalSpine[i][0])]) and time == 1:
+									print("otherside")
+									time = -1
+									flag_for_repeat = 1
+									for loop in range(len(self.spine2other[str(self.totalSpine[i][0])])):
+										if neibor_check[int(loop)] == 0:
+											index = int(self.spine2other[str(self.totalSpine[i][0])][int(loop)])
+											print("new index = " + str(index))
+											break
 							break
 						else:
-							print("judge1")
+							print("judge1, index = " + str(index) + " and " + str(index + way) + ", spine = " + str(j))
+							#print(j, neibor)
+							#print(index, index+way)
+							#print(flag1, flag2)
+							temp = index
+							if temp in self.spine2other[str(self.totalSpine[i][0])]:
+								#print(temp)
+								#print(self.spine2other[str(self.totalSpine[i][0])].index(temp))
+								neibor_check[self.spine2other[str(self.totalSpine[i][0])].index(temp)] = 1
+								print(self.spine2other[str(self.totalSpine[i][0])])
+								print(neibor_check)
+							if temp+way in self.spine2other[str(self.totalSpine[i][0])]:
+								#print(temp+way)
+								#print(self.spine2other[str(self.totalSpine[i][0])].index(temp+way))
+								neibor_check[self.spine2other[str(self.totalSpine[i][0])].index(temp+way)] = 1
+								print(self.spine2other[str(self.totalSpine[i][0])])
+								print(neibor_check)
 							x_ = [self.points[index][0], self.points[index][1], 0]
-							print(x_)
+							# print(x_)
 							x__ = np.argwhere(self.vertex == x_)
-							print(x__)
+							# print(x__)
 							flag = 0
 							for k in x__:
 								if flag == 2:
@@ -212,9 +257,9 @@ class rt(object):
 								if k[1] == 0:
 									flag = 1
 							y_ = [self.points[index + way][0], self.points[index + way][1],  0]
-							print(y_)
+							# print(y_)
 							y__ = np.argwhere(self.vertex == y_)
-							print(y__)
+							# print(y__)
 							flag = 0
 							for k in y__:
 								if flag == 2:
@@ -230,10 +275,11 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
+							#print(str(self.totalSpine[i][j]), str(self.points[index]))
 							z_ = self.oval[str(self.totalSpine[i][j])+str(self.points[index])][0]
-							print(z_)
+							# print(z_)
 							z__ = np.argwhere(self.vertex == z_)
-							print(z__)
+							# print(z__)
 							flag = 0
 							for k in z__:
 								if flag == 2:
@@ -249,14 +295,15 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
-							print(x, y, z)
+							# print(x, y, z)
+							#print([x,y,z])
 							self.face = np.insert(self.face, len(self.face), [[x,y,z]], axis=0)
 							x = y
 							y = z
-							z_ = self.oval[str(self.totalSpine[i][j])+str(self.points[index+1])][0]
-							print(z_)
+							z_ = self.oval[str(self.totalSpine[i][j])+str(self.points[index+way])][0]
+							# print(z_)
 							z__ = np.argwhere(self.vertex == z_)
-							print(z__)
+							# print(z__)
 							flag = 0
 							for k in z__:
 								if flag == 2:
@@ -272,17 +319,19 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
-							print(x, y, z)
+							# print(x, y, z)
 							self.face = np.insert(self.face, len(self.face), [[x,y,z]], axis=0)
 							count = 0
 							while count < 7:
+								#print([y+count,z+count,y+1+count])
 								self.face = np.insert(self.face, len(self.face), [[y+count,z+count,y+1+count]], axis=0)
+								#print([z+count,y+1+count,z+1+count])
 								self.face = np.insert(self.face, len(self.face), [[z+count,y+1+count,z+1+count]], axis=0)
 								count += 1
 							x_ = self.oval[str(self.totalSpine[i][j])+str(self.points[index])][8]
-							print(x_)
+							# print(x_)
 							x__ = np.argwhere(self.vertex == x_)
-							print(x__)
+							# print(x__)
 							flag = 0
 							for k in x__:
 								if flag == 2:
@@ -298,6 +347,7 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
+							#print([y+7,z+7,x])
 							self.face = np.insert(self.face, len(self.face), [[y+7,z+7,x]], axis=0)
 							index += way
 							continue	
@@ -305,11 +355,15 @@ class rt(object):
 					if j < length - 1:
 						judge2 = self.spine2other[str(self.totalSpine[i][j+1])]
 						if index in judge2:
-							print("judge2")
+							print("judge2, index = " + str(index) + ", spine = ", str(j) + " and " + str(j + 1))
+							#print(j, neibor, judge2)
+							#print(index)
+							if index in self.spine2other[str(self.totalSpine[i][0])]:
+								neibor_check[self.spine2other[str(self.totalSpine[i][0])].index(index)] = 1
 							x_ = [self.points[index][0], self.points[index][1], 0]
-							print(x_)
+							# print(x_)
 							x__ = np.argwhere(self.vertex == x_)
-							print(x__)
+							# print(x__)
 							flag = 0
 							for k in x__:
 								if flag == 2:
@@ -326,9 +380,9 @@ class rt(object):
 								if k[1] == 0:
 									flag = 1
 							y_ = self.oval[str(self.totalSpine[i][j])+str(self.points[index])][0]
-							print(y_)
+							# print(y_)
 							y__ = np.argwhere(self.vertex == y_)
-							print(y__)
+							# print(y__)
 							flag = 0
 							for k in y__:
 								if flag == 2:
@@ -345,9 +399,9 @@ class rt(object):
 								if k[1] == 0:
 									flag = 1
 							z_ = self.oval[str(self.totalSpine[i][j+1])+str(self.points[index])][0]
-							print(z_)
+							# print(z_)
 							z__ = np.argwhere(self.vertex == z_)
-							print(z__)
+							# print(z__)
 							flag = 0
 							for k in z__:
 								if flag == 2:
@@ -363,17 +417,20 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
-							print(x, y, z)
+							# print(x, y, z)
+							#print([x,y,z])
 							self.face = np.insert(self.face, len(self.face), [[x,y,z]], axis=0)
 							count = 0
 							while count < 7:
+								#print([y+count,z+count,y+1+count])
 								self.face = np.insert(self.face, len(self.face), [[y+count,z+count,y+1+count]], axis=0)
+								#print([z+count,y+1+count,z+1+count])
 								self.face = np.insert(self.face, len(self.face), [[z+count,y+1+count,z+1+count]], axis=0)
 								count += 1
 							x_ = self.oval[str(self.totalSpine[i][j])+str(self.points[index])][8]
-							print(x_)
+							# print(x_)
 							x__ = np.argwhere(self.vertex == x_)
-							print(x__)
+							# print(x__)
 							flag = 0
 							for k in x__:
 								if flag == 2:
@@ -389,11 +446,12 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
+							#print([y+7,z+7,x])
 							self.face = np.insert(self.face, len(self.face), [[y+7,z+7,x]], axis=0)
 							y_ = self.oval[str(self.totalSpine[i][j+1])+str(self.points[index])][8]
-							print(y_)
+							# print(y_)
 							y__ = np.argwhere(self.vertex == y_)
-							print(y__)
+							# print(y__)
 							flag = 0
 							for k in y__:
 								if flag == 2:
@@ -409,8 +467,11 @@ class rt(object):
 										flag = 0
 								if k[1] == 0:
 									flag = 1
+							#print([[z+7,x,y]])
 							self.face = np.insert(self.face, len(self.face), [[z+7,x,y]], axis=0)
-						j += 1
+							j += 1
+						else:
+							flag2 = 1
 
 
 	def Plot(self):
@@ -422,10 +483,23 @@ class rt(object):
 		ax.set_ylabel('y axis')
 		ax.set_zlabel('z axis')
 		'''
-		poly3d = [[self.vertex[vert_id] for vert_id in face] for face in self.face]
+		print(len(self.vertex))
+		print(len(self.face))
+		# poly3d = [[self.vertex[int(vert_id)] for vert_id in face] for face in self.face]
+		poly3d = [[self.vertex[int(face[0])], self.vertex[int(face[1])], self.vertex[int(face[2])], self.vertex[int(face[0])]] for face in self.face]
+		
 		x, y, z = zip(*self.vertex)
+		for i in self.totalSpine:
+			for j in i:
+				X.append(j[0])
+				Y.append(j[1])
+				Z.append(0)
 		ax.scatter(x, y, z)
-		ax.add_collection3d(Axes3D(poly3d, facecolors='w', linewidths=1, alpha=0.3))
+		ax.scatter(X, Y, Z, c = 'b')
+		ax.add_collection3d(Line3DCollection(poly3d, colors='k', linewidths=1, linestyles="solid"))
+		tmp = [[[x[0], x[1], 0] for x in s] for s in self.totalSpine]
+		ax.add_collection3d(Line3DCollection(tmp, colors='b', linewidths=1, linestyles="solid"))
+		print(len(self.totalSpine))
 		plt.show()
 
 	def run(self):
@@ -439,7 +513,7 @@ class rt(object):
 		#print("")
 		self.SpineUp()
 		self.MakeOval()
-		print(self.vertex)
+		#print(self.vertex)
 		self.MakeTri()
-		print(self.face)
+		#print(self.face)
 		self.Plot()
