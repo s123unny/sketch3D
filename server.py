@@ -48,10 +48,10 @@ class S(BaseHTTPRequestHandler):
 		polygon = geo.geometric(data)
 		polygon.po2tri()
 		polygon.plot_show() #plot the polygon 
-		threed = rittai.rt(polygon)
+		threed = rittai.rt(polygon) 
 		threed.run()
 		
-		print (polygon.spine2other)
+		# print (polygon.spine2other)
 		res = json.dumps(polygon.spine2other, default=default)
 		self._set_headers()
 		self.wfile.write(res.encode("utf-8"))
