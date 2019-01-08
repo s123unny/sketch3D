@@ -11,6 +11,7 @@ function postdata(raw_data) {
       data: data,
       success: function(data){
         console.log(data);
+        // handleLoadedTeapot(JSON.parse(data));
       },
       dataType: "text",
       contentType : "application/json"

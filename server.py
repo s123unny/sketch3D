@@ -14,7 +14,10 @@ for idx, element in enumerate(content):
 	fp.close()
 
 def default(o):
-    if isinstance(o, np.int32): return int(o) 
+	if isinstance(o, np.float64): 
+		return float(o) 
+	elif isinstance(o, np.int64):
+		return int(o)
 
 class S(BaseHTTPRequestHandler):
 	def _set_headers(self):
@@ -51,8 +54,8 @@ class S(BaseHTTPRequestHandler):
 		threed = rittai.rt(polygon) 
 		threed.run()
 		
-		# print (polygon.spine2other)
-		res = json.dumps(polygon.spine2other, default=default)
+		res = {"vertexPositions":list(threed.vertex.reshape(1,-1)[0]), "vertexNormals": list(threed.norm.reshape(1,-1)[0]), "indices": list(threed.face.reshape(1,-1)[0])}
+		res = json.dumps(res, default=default)
 		self._set_headers()
 		self.wfile.write(res.encode("utf-8"))
 
