@@ -802,7 +802,7 @@
             var c = document.getElementById("EasterSize").value;
             mat4.scale(mvMatrix, [c, c, c]);
         }
-        else if (index == 2) {
+        else{
             mat4.translate(mvMatrix, [-440, -367, -16])
             //x
             var X = document.getElementById("CarX").value;
@@ -962,11 +962,8 @@
                 </div>
                 <div class="col-4 row">
                     <label class="col-2">X.pos:</label>
-<<<<<<< Updated upstream
                     <input class="slider col align-self-center" type="range" min="0" max="360" value="180" id="EasterX" step="1" autocomplete="off">
-=======
-                    <input class="slider col align-self-center" type="range" min="0" max="360" value="180" id="EasterX" step="0.1" autocomplete="off">
->>>>>>> Stashed changes
+
                 </div>
                 <div class="col-4 row align-items-center">
                     <label class="col-2">X.pos:</label>
@@ -981,11 +978,8 @@
                 </div>
                 <div class="col-4 row align-items-center">
                     <label class="col-2">Y.pos:</label>
-<<<<<<< Updated upstream
                     <input class="slider col" type="range" min="0" max="360" value="180" id="EasterY" step="1" autocomplete="off">
-=======
-                    <input class="slider col" type="range" min="0" max="180" value="360" id="EasterY" step="0.1" autocomplete="off">
->>>>>>> Stashed changes
+
                 </div>
                 <div class="col-4 row align-items-center">
                     <label class="col-2">Y.pos:</label>
