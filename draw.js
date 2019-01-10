@@ -2,8 +2,8 @@ var line_coordinate = [];
 var drawcanvas;
 var context;
 var paint = false;
-function postdata(){//raw_data) {
-    raw_data = [123,111]
+function postdata(raw_data) {
+    // raw_data = [123,111]
     var data1 = JSON.stringify(raw_data);
     // console.log("hey im here");
     // console.log(JSON.parse(data));

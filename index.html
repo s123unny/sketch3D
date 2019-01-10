@@ -747,12 +747,12 @@
             return;
         }
 
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 2500.0, pMatrix);
+        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 4000.0, pMatrix);
 
         mat4.identity(mvMatrix);
 
         // 這裡是設定xy位置
-        if (index == 0) {
+        if (index == -1) {
             //x
             var X = document.getElementById("KangarooX").value;
             //y
@@ -765,7 +765,7 @@
             var c = document.getElementById("KangarooSize").value;
             mat4.scale(mvMatrix, [c, c, c]);
         }
-        else if (index == 1) {
+        else if (index == -3) {
             //x
             var X = document.getElementById("EasterX").value;
             //y
@@ -826,9 +826,9 @@
         gl.vertexAttribPointer(shaderProgram[index].vertexFrontColorAttribute, teapotVertexFrontColorBuffer[index].itemSize, gl.FLOAT, false, 0, 0);
 
         setMatrixUniforms(index);
-        if (index == 2) {
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, teapotVertexIndexBuffer[index-2]);
-            gl.drawElements(gl.TRIANGLES, teapotVertexIndexBuffer[index-2].numItems, gl.UNSIGNED_SHORT, 0);
+        if (index >= 0) {
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, teapotVertexIndexBuffer[index]);
+            gl.drawElements(gl.TRIANGLES, teapotVertexIndexBuffer[index].numItems, gl.UNSIGNED_SHORT, 0);
         } else {
             gl.drawArrays(gl.TRIANGLES, 0, teapotVertexPositionBuffer[index].numItems);
         }
@@ -866,12 +866,12 @@
         var canvas = document.getElementById("ICG-canvas");
         initGL(canvas);
 
-        initShaders("Kangaroo");
-        loadTeapot("Kangaroo.json");
+        // initShaders("Kangaroo");
+        // loadTeapot("Kangaroo.json");
         // initShaders("Easter");
         // loadTeapot("Easter.json");
-        initShaders("Car");
-        loadTeapot("Kangaroo.json");
+        // initShaders("Car");
+        // loadTeapot("Kangaroo.json");
 
         gl.clearColor(0.1, 0.1, 0.2, 1.0);
         gl.enable(gl.DEPTH_TEST);
@@ -885,22 +885,22 @@
 </head>
 
 
-<body onload="webGLStart();">
-<!-- <body onload="setContext();webGLStart();"> -->
+<!-- <body onload="webGLStart();"> -->
+<body onload="setContext();webGLStart();">
 <canvas id="ICG-canvas" style="border: none;" width="1420" height="500"></canvas>
-<!-- <canvas id="overlay" style="border: none;" width=1420;  height=500; 
+<canvas id="overlay" style="border: none;" width=1420;  height=500; 
         onmousedown="mousedownHandler(event)" 
         onmousemove="mousemoveHandler(event)"
         onmouseup="mouseupHandler(event)"
         style="cursor:pointer; background-color: transparent"       
          >
-</canvas> -->
+</canvas>
 <div class="container-fluid py-3 px-4" style="background-color: #111131">
     <br/>
     <div class="row">
         <div class="col-1">
-            <!-- <button onclick="clearCanvas()" type="button" class="form-control btn btn-outline-light">Clean up</button> -->
-            <button onclick="postdata()" type="button" class="form-control btn btn-outline-light">Post Data</button>
+            <button onclick="clearCanvas()" type="button" class="form-control btn btn-outline-light">Clean up</button>
+            <!-- <button onclick="postdata()" type="button" class="form-control btn btn-outline-light">Post Data</button> -->
         </div>
         <div class="col-11">
             <div class="text-white row"> 
