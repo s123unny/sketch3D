@@ -53,8 +53,8 @@ class S(BaseHTTPRequestHandler):
 		polygon.plot_show() #plot the polygon 
 		threed = rittai.rt(polygon) 
 		threed.run()
-		
-		res = {"vertexPositions":list(threed.vertex.reshape(1,-1)[0]), "vertexNormals": list(threed.norm.reshape(1,-1)[0]), "indices": list(threed.face.reshape(1,-1)[0])}
+		Len = len(threed.vertex.reshape(1,-1)[0])
+		res = {"vertexPositions":list(threed.vertex.reshape(1,-1)[0]), "vertexNormals": list(threed.norm.reshape(1,-1)[0]), "indices": list(threed.face.reshape(1,-1)[0]), "vertexFrontcolors": list([0.7450980392156863 for i in range(Len)]), "vertexBackcolors": list([0.0392156862745098 for i in range(Len)])}
 		res = json.dumps(res, default=default)
 		self._set_headers()
 		self.wfile.write(res.encode("utf-8"))

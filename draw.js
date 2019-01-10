@@ -2,16 +2,20 @@ var line_coordinate = [];
 var drawcanvas;
 var context;
 var paint = false;
-function postdata(raw_data) {
-    var data = JSON.stringify(raw_data);
-    // console.log(data);
+function postdata(){//raw_data) {
+    raw_data = [123,111]
+    var data1 = JSON.stringify(raw_data);
+    // console.log("hey im here");
+    // console.log(JSON.parse(data));
     $.ajax({
       type: "POST",
       url: "http://localhost:8000",
-      data: data,
+      data: data1,
       success: function(data){
         console.log(data);
-        // handleLoadedTeapot(JSON.parse(data));
+        // console.log("Above data from draw.js");
+        initShaders("Easter");
+        handleLoadedTeapot(JSON.parse(data));
       },
       dataType: "text",
       contentType : "application/json"
