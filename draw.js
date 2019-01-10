@@ -17,6 +17,11 @@ function postdata(raw_data) {
         initShaders("Easter");
         handleLoadedTeapot(JSON.parse(data));
       },
+      statusCode: {
+        404: function() {
+          alert("not convex >___< ");
+        }
+      },
       dataType: "text",
       contentType : "application/json"
     });

@@ -49,15 +49,18 @@ class S(BaseHTTPRequestHandler):
 		post_data = self.rfile.read(length).decode('utf-8')
 		data = json.loads(post_data)
 		polygon = geo.geometric(data)
-		polygon.po2tri()
-		polygon.plot_show() #plot the polygon 
-		threed = rittai.rt(polygon) 
-		threed.run()
-		Len = len(threed.vertex.reshape(1,-1)[0])
-		res = {"vertexPositions":list(threed.vertex.reshape(1,-1)[0]), "vertexNormals": list(threed.norm.reshape(1,-1)[0]), "indices": list(threed.face.reshape(1,-1)[0]), "vertexFrontcolors": list([2 for i in range(Len)]), "vertexBackcolors": list([0.7392156862745098 for i in range(Len)])}
-		res = json.dumps(res, default=default)
-		self._set_headers()
-		self.wfile.write(res.encode("utf-8"))
+		if polygon.po2tri() == True:
+			polygon.plot_show() #plot the polygon 
+			threed = rittai.rt(polygon) 
+			threed.run()
+			Len = len(threed.vertex.reshape(1,-1)[0])
+			res = {"vertexPositions":list(threed.vertex.reshape(1,-1)[0]), "vertexNormals": list(threed.norm.reshape(1,-1)[0]), "indices": list(threed.face.reshape(1,-1)[0]), "vertexFrontcolors": list([2 for i in range(Len)]), "vertexBackcolors": list([0.7392156862745098 for i in range(Len)])}
+			res = json.dumps(res, default=default)
+			self._set_headers()
+			self.wfile.write(res.encode("utf-8"))
+		else:
+			self.send_response(404)
+			self.end_headers()
 
 def run(server_class=HTTPServer, handler_class=S, port=8000):
 	server_address = ('', port)

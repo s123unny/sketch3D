@@ -15,6 +15,28 @@ class geometric(object):
 		super(geometric, self).__init__()
 		self.points = np.asarray(points)
 
+	def isConvex(self):
+		_vertices = self.points
+		if len(_vertices) < 4:
+			return true
+
+		sign = False
+		n = len(_vertices)
+
+		for i in  range(n):
+			dx1 = _vertices[(i + 2) % n][0] - _vertices[(i + 1) % n][0]
+			dy1 = _vertices[(i + 2) % n][1] - _vertices[(i + 1) % n][1]
+			dx2 = _vertices[i][0] - _vertices[(i + 1) % n][0]
+			dy2 = _vertices[i][1] - _vertices[(i + 1) % n][1]
+			zcrossproduct = dx1 * dy2 - dy1 * dx2
+
+			if i == 0:
+				sign = zcrossproduct > 0
+			elif sign != (zcrossproduct > 0):
+				return False
+
+		return True
+
 	def cleanpoints(self):
 		for i in range(len(self.points)-1):
 			if distance(self.points[i], self.points[i+1]) > 50.0:
@@ -36,6 +58,9 @@ class geometric(object):
 	def po2tri(self):
 		
 		self.cleanpoints()
+		if self.isConvex() == False:
+			print ("not convex")
+			return False
 		# self.points = np.asarray([[439,368],[400,357],[382,341],[372,323],[365,300],[364,277],[364,254],[374,227],[388,205],[406,186],[422,173],[442,164],[467,159],[490,158],[512,161],[537,175],[556,193],[573,215],[588,237],[599,260],[605,285],[605,307],[604,328],[592,346],[570,362],[548,372],[523,378],[502,380],[481,381]])
 		# b = np.array([440, 367])
 		# self.points = self.points - b
@@ -259,6 +284,7 @@ class geometric(object):
 		# print (totalSpine)
 		self.totalSpine = totalSpine
 		self.spine2other = spine2other
+		return True
 
 	def plot_show(self):
 		# plt.triplot(self.points[:,0], self.points[:,1], self.tri.simplices)
