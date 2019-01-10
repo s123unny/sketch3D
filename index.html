@@ -535,10 +535,12 @@
 
     var shaderProgram = [];
     var type = [];
+    var all = 0;
 
     // var index = 0;
 
     function initShaders(thing) {       //ok
+        all++;
         var now = document.getElementById(thing).value;
         type.push(now);
 
@@ -757,14 +759,9 @@
         // if (checkbox.checked) { on = 1 }
         // else { on = 0 }
 
-        if (index == 2) {
-            // var ballCycle = 80;
-            // var ballVar = 10;
+        if (1) {
             function shake(time){
                 var v = 3;
-                // var checkbox = document.getElementById("move");
-                // if (checkbox.checked) { on = 1 }
-                // else { on = 0 }
                 if (time <= 500) {
                     return time * v;
                 }
@@ -772,16 +769,35 @@
                     return (1000 - time) * v;
                 }
             }
-            // mat4.identity(mvMatrix);
-            // mat4.translate(mvMatrix, [7.3, -1.7, -7]);
-            
             mat4.translate(mvMatrix, [-shake(timeFromStart), 0, 0]);
             // mat4.rotate(mvMatrix, degToRad(-90), [1, 0, 0]);
             // mat4.rotate(mvMatrix, degToRad(shake(timeFromStart)), [0, -1, 0]);
         }
-        // else {
-        //     mat4.translate(mvMatrix, [-shake(timeFromStart), 0, 0]);
-        // }
+        if (1) {
+            var kangaMaxHeight = 1;
+            var kangaMaxRot = 10;
+            var kangaCycle = 80;
+            function jumpHeight(time){
+                var t = (time / kangaCycle) % 1.0 - 0.5;
+                return kangaMaxHeight * (0.25 - t*t);
+            }
+            function jumpRot(time){
+                return kangaMaxRot * Math.sin(2*Math.PI*time/kangaCycle);
+            }
+            mat4.translate(mvMatrix, [-timeFromStart*0.01, 0, 0]);
+            mat4.translate(mvMatrix, [0, jumpHeight(timeFromStart), 0]);
+            // mat4.rotate(mvMatrix[1], degToRad(-90), [1, 0, 0]);
+            // mat4.rotate(mvMatrix[1], degToRad(-100), [0, 0, 1]);
+            mat4.rotate(mvMatrix, degToRad(jumpRot(timeFromStart)), [1, 0, 0]);
+        }
+        switch(index) {
+            case 0:
+            mat4.rotate(mvMatrix, degToRad(jumpRot(timeFromStart)), [1, 0, 0]);
+            case 1:
+            mat4.rotate(mvMatrix, degToRad(jumpRot(timeFromStart)), [0, 1, 0]);
+            case 2:
+            mat4.rotate(mvMatrix, degToRad(jumpRot(timeFromStart)), [0, 0, 1]);
+        }
 
         // 這裡是設定xy位置
         if (index == -1) {
@@ -833,7 +849,7 @@
         mat4.rotate(mvMatrix, degToRad(-270), [1, 0, 0]);
         mat4.rotate(mvMatrix, degToRad(180), [0, 1, 0]);
         // if (index == 2) { mat4.rotate(mvMatrix, degToRad(95), [0, 0, 1]); }
-
+        
         var angleZ = document.getElementById("EasterZ").value;
         var angleY = document.getElementById("EasterY").value;
         var angleX = document.getElementById("EasterX").value;
@@ -889,8 +905,8 @@
     function tick(i) {      //ok
         requestAnimFrame(tick);
         var i;
-        // drawScene(0);
-        for (i = 0; i < 3; i++) {
+        drawScene(0);
+        for (i = 0; i < all; i++) {
             drawScene(i);
         }
         animate();   
@@ -901,13 +917,6 @@
         console.log("webgl start");
         var canvas = document.getElementById("ICG-canvas");
         initGL(canvas);
-
-        // initShaders("Kangaroo");
-        // loadTeapot("Kangaroo.json");
-        // initShaders("Easter");
-        // loadTeapot("Easter.json");
-        // initShaders("Car");
-        // loadTeapot("Kangaroo.json");
 
         gl.clearColor(0.1, 0.1, 0.2, 1.0);
         gl.enable(gl.DEPTH_TEST);
@@ -954,7 +963,7 @@
                             <option value="_Toon">Toon Shading
                         </select>
                 </div>
-                <div class="col-4 row">
+                <!-- <div class="col-4 row">
                         <label class="col-2">Object2:</label>
                         <select class="col mx-2" id="Easter" onchange="changeShaders(1, id)" autocomplete="off">
                             <option selected="selected" value="_Flat">Flat Shading
@@ -971,7 +980,7 @@
                             <option value="_Phong">Phong Shading
                             <option value="_Toon">Toon Shading
                         </select>
-                </div>            
+                </div> -->            
             </div>
 
             <div class="text-white row">
