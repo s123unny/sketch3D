@@ -150,7 +150,6 @@
     }
 </script>
 
-
 <script id="fragmentShader_Gouraud" type="fragment">      //ok
     precision mediump float;
     varying vec4 fragcolor;
@@ -380,175 +379,126 @@
     }
 </script>
 
-<script id="fragmentShader_Toon" type="fragment">    //ok
+<!-- <script id="fragmentShader_Toon" type="fragment">
     precision mediump float;
 
     varying vec4 fragcolor;
+
+    // Light Position / Direction
     varying vec3 vertPos;
     varying vec3 normal;
-
-    varying vec3 color;
 
     varying vec3 light1;
     varying vec3 light2;
     varying vec3 light3;
-
-    varying vec3 lightcolor1;
-    varying vec3 lightcolor2;
-    varying vec3 lightcolor3;
-
-    varying vec3 on_off1;
-    varying vec3 on_off2;
-    varying vec3 on_off3;
+    
+    // Params to tune
+    float Ka = 0.5;
+    float Kd = 0.9;
+    float Ks = 3.0;
+    float materialShininess = 50.0;
 
     void main(void) {
-        //Ambient
-        float ambientStrength = 0.1;
-        vec3 Ia = ambientStrength * vec3(3.0, 3.0, 3.0);
-        vec3 V = normalize( - vertPos );
-        // vec3 light = vec3(5.0, 5.0, 5.0);
-        vec3 I = vec3(0.0, 0.0, 0.0);
+        // Material ambient / diffuse / specular
+        vec4 uMaterialDiffuse = vec4(0.0, 0.0, 0.0, 1.0);
+        // Light ambient / diffuse / specular / position
+        vec4 uLightAmbient = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 uLightDiffuse = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 uLightSpecular = vec4(0.0, 0.0, 0.0, 1.0);
+        float levels = 1.0;
+        float scaleFactor = 1.0 / levels;
 
-        //First Light
-        vec3 lightVector = normalize(light1 - vertPos);
-        vec3 H = normalize( lightVector + V );
-            //diffusion
-        float lambertTerm = max(dot(normal, lightVector), 0.0);
-        vec3 Id = lambertTerm * floor(lambertTerm * 5.0) * 0.2 * vec3(1.0, 1.0, 1.0);
-            //specular
-        float specularStrength = 15.0;
-        float specular = 0.0;
-        if (lambertTerm > 0.0) {
-            vec3 R = reflect(-lightVector, normal);      // Reflected light vector
-            specular = pow( max(dot(H, V), 0.0), 80.0); // Compute the specular term
+        vec3 l1 = normalize(light1 - vertPos);
+        vec3 l2 = normalize(light2 - vertPos);
+        vec3 l3 = normalize(light3 - vertPos);
+
+        vec3 n = normalize(normal);
+
+        float diffuseWeight1 = floor(max(dot(n, l1), 0.0) * levels) * scaleFactor;
+        float diffuseWeight2 = floor(max(dot(n, l2), 0.0) * levels) * scaleFactor;
+        float diffuseWeight3 = floor(max(dot(n, l3), 0.0) * levels) * scaleFactor;
+
+        // Initialize params
+        vec4 La = uLightAmbient;
+        vec4 Ld1 = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 Ld2 = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 Ld3 = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 Ls1 = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 Ls2 = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 Ls3 = vec4(0.0, 0.0, 0.0, 1.0);
+
+        if(diffuseWeight1 > 0.0){
+            Ld1 = uLightDiffuse * uMaterialDiffuse * diffuseWeight1;
+            vec3 eyeDirection = normalize(-vertPos);
+            vec3 reflectDirection = reflect(-l1, n);
+            float specular = pow(max(dot(reflectDirection, eyeDirection), 0.0), materialShininess);
+            Ls1 = uLightSpecular * specular;
         }
-        vec3 Is = specularStrength * specular * lightcolor1;
-
-        float specMask = (pow(dot(H, normal), 80.0) > 0.3) ? 1.0 : 0.0;
-        float edgeDetection = (dot(V, normal) > 0.1) ? 1.0 : 0.0;
-        I = I + Ia * on_off1 + edgeDetection * (Id * on_off1 + Is * specMask * on_off1);
-
-        //Second Light
-        lightVector = normalize(light2 - vertPos);
-        H = normalize( lightVector + V );
-            //diffusion
-        lambertTerm = max(dot(normal, lightVector), 0.0);
-        Id = lambertTerm * floor(lambertTerm * 5.0) * 0.2 * vec3(1.0, 1.0, 1.0);
-            //sepcular
-        specular = 0.0;
-        if (lambertTerm > 0.0) {
-            vec3 R = reflect(-lightVector, normal);      // Reflected light vector
-            specular = pow( max(dot(H, V), 0.0), 80.0); // Compute the specular term
+        if(diffuseWeight2 > 0.0){
+            Ld2 = uLightDiffuse * uMaterialDiffuse * diffuseWeight2;
+            vec3 eyeDirection = normalize(-vertPos);
+            vec3 reflectDirection = reflect(-l2, n);
+            float specular = pow(max(dot(reflectDirection, eyeDirection), 0.0), materialShininess);
+            Ls2 = uLightSpecular * specular;
         }
-        Is = specularStrength * specular * lightcolor2;
-        
-        specMask = (pow(dot(H, normal), 80.0) > 0.3) ? 1.0 : 0.0;
-        edgeDetection = (dot(V, normal) > 0.1) ? 1.0 : 0.0;
-        I = I + Ia * on_off2 + edgeDetection * (Id * on_off2 + Is * specMask * on_off2);
-
-        //Third Light
-        lightVector = normalize(light3 - vertPos);
-        H = normalize( lightVector + V );
-            //diffusion
-        lambertTerm = max(dot(normal, lightVector), 0.0);
-        Id = lambertTerm * floor(lambertTerm * 5.0) * 0.2 * vec3(1.0, 1.0, 1.0);
-            //sepcular
-        specular = 0.0;
-        if (lambertTerm > 0.0) {
-            vec3 R = reflect(-lightVector, normal);      // Reflected light vector
-            specular = pow( max(dot(H, V), 0.0), 80.0); // Compute the specular term
+        if(diffuseWeight3 > 0.0){
+            Ld3 = uLightDiffuse * uMaterialDiffuse * diffuseWeight3;
+            vec3 eyeDirection = normalize(-vertPos);
+            vec3 reflectDirection = reflect(-l3, n);
+            float specular = pow(max(dot(reflectDirection, eyeDirection), 0.0), materialShininess);
+            Ls3 = uLightSpecular * specular;
         }
-        Is = specularStrength * specular * lightcolor3;
-        
-        specMask = (pow(dot(H, normal), 80.0) > 0.3) ? 1.0 : 0.0;
-        edgeDetection = (dot(V, normal) > 0.1) ? 1.0 : 0.0;
-        I = I + Ia * on_off3 + edgeDetection * (Id * on_off3 + Is * specMask * on_off3);
 
-        //Final color
-        gl_FragColor = vec4(color * I, 1.0);
+        vec4 colorWeight = Ka * La + Kd * (Ld1 + Ld2 + Ld3) + Ks * (Ls1 + Ls2 + Ls3);
+        gl_FragColor = vec4((colorWeight * fragcolor).rgb, fragcolor.a);
     }
 </script>
-<script id="vertexShader_Toon" type="vertex">    //ok
-    attribute vec3 aVertexPosition;
-    attribute vec3 aFrontColor;
-    attribute vec3 aNormal;
+<script id="vertexShader_Toon" type="vertex">
+   attribute vec3 aVertexPosition;
+   attribute vec3 aFrontColor;
+   attribute vec3 aNormal;
 
-    uniform mat4 uMVMatrix;
-    uniform mat4 uPMatrix;
+   uniform mat4 uMVMatrix;
+   uniform mat4 uPMatrix;
+   // uniform mat4 uNMatrix;
 
-    uniform vec3 lightPos1;
-    uniform vec3 lightPos2;
-    uniform vec3 lightPos3;
+   varying vec3 vertPos;
+   varying vec3 normal;
 
-    uniform vec3 lightColor1;
-    uniform vec3 lightColor2;
-    uniform vec3 lightColor3;
+   varying vec4 fragcolor;
+   uniform sampler2D uSampler;
 
-    uniform vec3 on1;
-    uniform vec3 on2;
-    uniform vec3 on3;
-
-    varying vec4 fragcolor;
-    varying vec3 vertPos;
-    varying vec3 normal;
-
-    varying vec3 color;
-    
-    varying vec3 light1;
-    varying vec3 light2;
-    varying vec3 light3;
-    
-    varying vec3 lightcolor1;
-    varying vec3 lightcolor2;
-    varying vec3 lightcolor3;
-
-    varying vec3 on_off1;
-    varying vec3 on_off2;
-    varying vec3 on_off3;
-
-    void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-
-        //become the world's space
-        vertPos = mat3(uMVMatrix) * aVertexPosition;
-        normal = normalize(mat3(uMVMatrix) * aNormal);
-
-        light1 = lightPos1;
-        light2 = lightPos2;
-        light3 = lightPos3;
-
-        lightcolor1 = lightColor1;
-        lightcolor2 = lightColor2;
-        lightcolor3 = lightColor3;
-
-        on_off1 = on1;
-        on_off2 = on2;
-        on_off3 = on3;
-
-        color = aFrontColor;
-    }
-</script>
+   void main(void) {
+      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+      vertPos = (uMVMatrix * vec4(aVertexPosition, 1.0)).xyz;
+      // normal = vec3(uNMatrix * vec4(aNormal, 1.0));
+      
+      vec4 fragcolor_tmp = vec4(aFrontColor.rgb, 1.0);
+      fragcolor = vec4(fragcolor_tmp.rgb, fragcolor_tmp.a);
+   }
+</script> -->
 
 <script type="text/javascript">
 
-	var gl;
+    var gl;
 
     function initGL(canvas) {
-		try {
-			gl = canvas.getContext("experimental-webgl");
-			gl.getExtension('OES_standard_derivatives');
-			gl.getExtension('EXT_shader_texture_lod');
-			gl.viewportWidth = canvas.width;
-			gl.viewportHeight = canvas.height;
-		} catch (e) {
-		}
-		if (!gl) {
-			alert("Could not initialise WebGL, sorry :-(");
-		}
-	}
+        console.log("initGL");
+        try {
+            gl = canvas.getContext("experimental-webgl");
+            gl.getExtension('OES_standard_derivatives');
+            gl.getExtension('EXT_shader_texture_lod');
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+        } catch (e) {
+        }
+        if (!gl) {
+            alert("Could not initialise WebGL, sorry :-(");
+        }
+    }
 
 
-	function getShader(gl, id) {        //ok
+    function getShader(gl, id) {        //ok
         var shaderScript = document.getElementById(id);
         if (!shaderScript) {
             return null;
@@ -583,8 +533,10 @@
     }
 
 
-	var shaderProgram = [];
+    var shaderProgram = [];
     var type = [];
+
+    // var index = 0;
 
     function initShaders(thing) {       //ok
         var now = document.getElementById(thing).value;
@@ -630,10 +582,12 @@
         inshaderProgram.ON3 = gl.getUniformLocation(inshaderProgram, "on3");
 
         shaderProgram.push(inshaderProgram);
+        // console.log("shaderProgram:");
+        // console.log(shaderProgram);
     }
 
 
-	function changeShaders(index, thing) {      //ok
+    function changeShaders(index, thing) {      //ok
         var now = document.getElementById(thing).value;
         type[index] = now;
 
@@ -680,7 +634,7 @@
     }
 
 
-	var mvMatrix = mat4.create();
+    var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
     var L1 = [150, 0, 150];
     var L2 = [-150, 0, 150];
@@ -709,23 +663,28 @@
         gl.uniform3fv(shaderProgram[index].ON3, on_off3);
     }
 
-	function degToRad(degrees) {
-		return degrees * Math.PI / 180;
-	}
+    function degToRad(degrees) {
+        return degrees * Math.PI / 180;
+    }
 
 
-	var teapotVertexPositionBuffer = [];
+    var teapotVertexPositionBuffer = [];
     var teapotVertexNormalBuffer = [];
     var teapotVertexFrontColorBuffer = [];
     var teapotVertexBackColorBuffer = [];
 
     function handleLoadedTeapot(teapotData) {       //ok
+        console.log("handleLoadedTeapot");
+        console.log(teapotData);
+        console.log("----------------------");
         var in_teapotVertexNormalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, in_teapotVertexNormalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teapotData.vertexNormals), gl.STATIC_DRAW);
         in_teapotVertexNormalBuffer.itemSize = 3;
         in_teapotVertexNormalBuffer.numItems = teapotData.vertexNormals.length / 3;
         teapotVertexNormalBuffer.push(in_teapotVertexNormalBuffer);
+        // console.log("Normal");
+        // console.log(in_teapotVertexNormalBuffer)
 
         var in_teapotVertexFrontColorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, in_teapotVertexFrontColorBuffer);
@@ -733,6 +692,8 @@
         in_teapotVertexFrontColorBuffer.itemSize = 3;
         in_teapotVertexFrontColorBuffer.numItems = teapotData.vertexFrontcolors.length / 3;
         teapotVertexFrontColorBuffer.push(in_teapotVertexFrontColorBuffer);
+        // console.log("Frontcolors");
+        // console.log(in_teapotVertexFrontColorBuffer);
 
         var in_teapotVertexBackColorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, in_teapotVertexBackColorBuffer);
@@ -740,6 +701,8 @@
         in_teapotVertexBackColorBuffer.itemSize = 3;
         in_teapotVertexBackColorBuffer.numItems = teapotData.vertexBackcolors.length / 3;
         teapotVertexBackColorBuffer.push(in_teapotVertexBackColorBuffer);
+        // console.log("Backcolors");
+        // console.log(in_teapotVertexBackColorBuffer);
 
         var in_teapotVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, in_teapotVertexPositionBuffer);
@@ -747,9 +710,11 @@
         in_teapotVertexPositionBuffer.itemSize = 3;
         in_teapotVertexPositionBuffer.numItems = teapotData.vertexPositions.length / 3;
         teapotVertexPositionBuffer.push(in_teapotVertexPositionBuffer);
+        // console.log("vertexPositions");
+        // console.log(in_teapotVertexPositionBuffer);
     }
 
-	function loadTeapot(file) {     //ok
+    function loadTeapot(file) {     //ok
         var request = new XMLHttpRequest();
         request.open("GET", file);
         request.onreadystatechange = function () {
@@ -761,9 +726,10 @@
     }
 
 
-	var teapotAngle = 180;
+    var teapotAngle = 180;
 
     function drawScene(index) {     //ok
+        // console.log("drawScene");
         if (index == 0) {
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -777,64 +743,62 @@
 
         mat4.identity(mvMatrix);
 
-        //這裡是設定xy位置
-        // if (index == 0) {
-        //     //x
-        //     var X = document.getElementById("KangarooX").value;
-        //     //y
-        //     var Y = document.getElementById("KangarooY").value;
-        //     //Z
-        //     var Z = document.getElementById("KangarooZ").value;
-        //     mat4.translate(mvMatrix, [X, Y, Z]);   //[位置x:-5~5, 位置y:-3~4, 位置z:-20~-1]
+        // 這裡是設定xy位置
+        if (index == 0) {
+            //x
+            var X = document.getElementById("KangarooX").value;
+            //y
+            var Y = document.getElementById("KangarooY").value;
+            //Z
+            var Z = document.getElementById("KangarooZ").value;
+            mat4.translate(mvMatrix, [X, Y, Z]);   //[位置x:-5~5, 位置y:-3~4, 位置z:-20~-1]
 
-        //     //Scale
-        //     var c = document.getElementById("KangarooSize").value;
-        //     mat4.scale(mvMatrix, [c, c, c]);
-        // }
-        // else if (index == 1) {
-        //     //x
-        //     var X = document.getElementById("EasterX").value;
-        //     //y
-        //     var Y = document.getElementById("EasterY").value;
-        //     //Z
-        //     var Z = document.getElementById("EasterZ").value;
-        //     mat4.translate(mvMatrix, [X, Y, Z]);   //[位置x:-5~5, 位置y:-3~4, 位置z:-20~-1]
+            //Scale
+            var c = document.getElementById("KangarooSize").value;
+            mat4.scale(mvMatrix, [c, c, c]);
+        }
+        else if (index == 1) {
+            //x
+            var X = document.getElementById("EasterX").value;
+            //y
+            var Y = document.getElementById("EasterY").value;
+            //Z
+            var Z = document.getElementById("EasterZ").value;
+            mat4.translate(mvMatrix, [X, Y, -10]);   //[位置x:-5~5, 位置y:-3~4, 位置z:-20~-1]
 
-        //     //Scale
-        //     var c = document.getElementById("EasterSize").value;
-        //     mat4.scale(mvMatrix, [c, c, c]);
-        // }
-        // else {
-        //     //x
-        //     var X = document.getElementById("CarX").value;
-        //     //y
-        //     var Y = document.getElementById("CarY").value;
-        //     //Z
-        //     var Z = document.getElementById("CarZ").value;
-        //     mat4.translate(mvMatrix, [X, Y, Z]);   //[位置x:-5~5, 位置y:-3~4, 位置z:-20~-1]
+            //Scale
+            var c = document.getElementById("EasterSize").value;
+            mat4.scale(mvMatrix, [c, c, c]);
+        }
+        else {
+            mat4.translate(mvMatrix, [-440, -367, -16])
+            //x
+            var X = document.getElementById("CarX").value;
+            // console.log("X",X);
+            //y
+            var Y = document.getElementById("CarY").value;
+            // console.log("Y",Y);
+            //Z
+            var Z = document.getElementById("CarZ").value;
+            mat4.translate(mvMatrix, [X, Y, Z]);   //[位置x:-5~5, 位置y:-3~4, 位置z:-20~-1]
 
-        //     //Scale
-        //     var c = document.getElementById("CarSize").value;
-        //     mat4.scale(mvMatrix, [c, c, c]);
-        // }
+            //Scale
+            var c = document.getElementById("CarSize").value;
+            // console.log("size",c);
+            mat4.scale(mvMatrix, [c, c, c]);
+        }
 
         //rotate
         mat4.rotate(mvMatrix, degToRad(-270), [1, 0, 0]);
         mat4.rotate(mvMatrix, degToRad(180), [0, 1, 0]);
-        if (index == 2) { mat4.rotate(mvMatrix, degToRad(95), [0, 0, 1]); }
-        mat4.rotate(mvMatrix, degToRad(teapotAngle), [0, 0, 1]);    //[以x為轉軸, 以y為轉軸, 以z為轉軸]
-
-        var checkbox = document.getElementById("K_light1");
-        if (checkbox.checked) { on_off1 = [1, 1, 1]; }
-        else { on_off1 = [0, 0, 0]; }
-        var checkbox = document.getElementById("K_light2");
-        if (checkbox.checked) { on_off2 = [1, 1, 1]; }
-        else { on_off2 = [0, 0, 0]; }
-        var checkbox = document.getElementById("K_light3");
-        if (checkbox.checked) { on_off3 = [1, 1, 1]; }
-        else { on_off3 = [0, 0, 0]; }
+        // if (index == 2) { mat4.rotate(mvMatrix, degToRad(95), [0, 0, 1]); }
+        var angle = document.getElementById("EasterZ").value;
+        // angle = 350; 
+        mat4.rotate(mvMatrix, degToRad(angle), [0, 0, 1]);    //[以x為轉軸, 以y為轉軸, 以z為轉軸]
 
         gl.useProgram(shaderProgram[index]);
+        // console.log("here shaderProgram[index]");
+        // console.log(shaderProgram[index]);
         
         gl.uniform1i(shaderProgram[index].samplerUniform, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexNormalBuffer[index]);
@@ -848,24 +812,27 @@
 
         setMatrixUniforms(index);
         gl.drawArrays(gl.TRIANGLES, 0, teapotVertexPositionBuffer[index].numItems);
+        // if (index == 2) console.log(teapotVertexPositionBuffer[index]);
     }
 
-	var lastTime = 0;
+    var lastTime = 0;
 
-	function animate() {
-		var timeNow = new Date().getTime();
-		if (lastTime != 0) {
-			var elapsed = timeNow - lastTime;
-			teapotAngle += 0.03 * elapsed;
-			timeFromStart = (timeFromStart + 0.05 * elapsed) % timeTotal;
-		}
-		lastTime = timeNow;
-	}
+    function animate() {
+        var timeNow = new Date().getTime();
+        if (lastTime != 0) {
+            var elapsed = timeNow - lastTime;
+            teapotAngle += 0.03 * elapsed;
+            // console.log(teapotAngle);
+            // timeFromStart = (timeFromStart + 0.05 * elapsed) % timeTotal;
+        }
+        lastTime = timeNow;
+    }
 
 
-	function tick(i) {      //ok
+    function tick(i) {      //ok
         requestAnimFrame(tick);
         var i;
+        // drawScene(0);
         for (i = 0; i < 3; i++) {
             drawScene(i);
         }
@@ -873,16 +840,17 @@
     }
 
 
-	function webGLStart() {     //ok
+    function webGLStart() {     //ok
+        console.log("webgl start");
         var canvas = document.getElementById("ICG-canvas");
         initGL(canvas);
 
         initShaders("Kangaroo");
         loadTeapot("Kangaroo.json");
-        initShaders("Easter");
-        loadTeapot("Easter.json");
+        // initShaders("Easter");
+        // loadTeapot("Easter.json");
         initShaders("Car");
-        loadTeapot("Car_road.json");
+        loadTeapot("Kangaroo.json");
 
         gl.clearColor(0.1, 0.1, 0.2, 1.0);
         gl.enable(gl.DEPTH_TEST);
@@ -896,119 +864,118 @@
 </head>
 
 
-<body onload="setContext();webGLStart();">
+<body onload="webGLStart();">
+<!-- <body onload="setContext();webGLStart();"> -->
 <canvas id="ICG-canvas" style="border: none;" width="1420" height="500"></canvas>
-<canvas id="overlay" style="border: none;" width=1420;  height=500; 
+<!-- <canvas id="overlay" style="border: none;" width=1420;  height=500; 
         onmousedown="mousedownHandler(event)" 
         onmousemove="mousemoveHandler(event)"
         onmouseup="mouseupHandler(event)"
         style="cursor:pointer; background-color: transparent"       
          >
-</canvas>
+</canvas> -->
 <div class="container-fluid py-3 px-4" style="background-color: #111131">
-	<div class="row">
-		<!-- <canvas id="ICG-canvas" style="border: none;" width="1420" height="500"></canvas> -->
-  	</div>
-	<br/>
-	<div class="row">
-		<div class="col-1">
-			<button onclick="clearCanvas()" type="button" class="form-control btn btn-outline-light">Clean up</button>
-		</div>
-		<div class="col-11">
-			<div class="text-white row"> 
-		        <div class="col-4 row">
-		                <label class="col-2">Object1:</label>
-		                <select class="col mx-2" id="Kangaroo" onchange="changeShaders(0, id)" autocomplete="off">
-		                    <option selected="selected" value="_Flat">Flat Shading
-		                    <option value="_Gouraud">Gouraud Shading
-		                    <option value="_Phong">Phong Shading
-		                    <option value="_Toon">Toon Shading
-		                </select>
-		        </div>
-		        <div class="col-4 row">
-		                <label class="col-2">Object2:</label>
-		                <select class="col mx-2" id="Easter" onchange="changeShaders(1, id)" autocomplete="off">
-		                    <option selected="selected" value="_Flat">Flat Shading
-		                    <option value="_Gouraud">Gouraud Shading
-		                    <option value="_Phong">Phong Shading
-		                    <option value="_Toon">Toon Shading
-		                </select>
-		        </div>
-		        <div class="col-4 row">
-		                <label class="col-2">Object3:</label>
-		                <select class="col mx-2" id="Car" onchange="changeShaders(2, id)" autocomplete="off">
-		                    <option selected="selected" value="_Flat">Flat Shading
-		                    <option value="_Gouraud">Gouraud Shading
-		                    <option value="_Phong">Phong Shading
-		                    <option value="_Toon">Toon Shading
-		                </select>
-		        </div>            
-		    </div>
+    <br/>
+    <div class="row">
+        <div class="col-1">
+            <!-- <button onclick="clearCanvas()" type="button" class="form-control btn btn-outline-light">Clean up</button> -->
+            <button onclick="postdata()" type="button" class="form-control btn btn-outline-light">Post Data</button>
+        </div>
+        <div class="col-11">
+            <div class="text-white row"> 
+                <div class="col-4 row">
+                        <label class="col-2">Object1:</label>
+                        <select class="col mx-2" id="Kangaroo" onchange="changeShaders(0, id)" autocomplete="off">
+                            <option selected="selected" value="_Flat">Flat Shading
+                            <option value="_Gouraud">Gouraud Shading
+                            <option value="_Phong">Phong Shading
+                            <option value="_Toon">Toon Shading
+                        </select>
+                </div>
+                <div class="col-4 row">
+                        <label class="col-2">Object2:</label>
+                        <select class="col mx-2" id="Easter" onchange="changeShaders(1, id)" autocomplete="off">
+                            <option selected="selected" value="_Flat">Flat Shading
+                            <option value="_Gouraud">Gouraud Shading
+                            <option value="_Phong">Phong Shading
+                            <option value="_Toon">Toon Shading
+                        </select>
+                </div>
+                <div class="col-4 row">
+                        <label class="col-2">Object3:</label>
+                        <select class="col mx-2" id="Car" onchange="changeShaders(2, id)" autocomplete="off">
+                            <option selected="selected" value="_Flat">Flat Shading
+                            <option value="_Gouraud">Gouraud Shading
+                            <option value="_Phong">Phong Shading
+                            <option value="_Toon">Toon Shading
+                        </select>
+                </div>            
+            </div>
 
-		    <div class="text-white row">
-		        <div class="col-4 row">
-		            <label class="col-2">X.pos:</label>
-		            <input class="slider col align-self-center" type="range" min="-9.5" max="4.5" value="-2.5" id="KangarooX" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row">
-		            <label class="col-2">X.pos:</label>
-		            <input class="slider col align-self-center" type="range" min="-7" max="7" value="0" id="EasterX" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">X.pos:</label>
-		            <input class="slider col" type="range" min="-4.5" max="9.5" value="2.5" id="CarX" step="0.1" autocomplete="off">
-		        </div>
-		    </div>
-		        
-		    <div class="text-white row">
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Y.pos:</label>
-		            <input class="slider col" type="range" min="-0.7" max="5.3" value="2.3" id="KangarooY" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Y.pos:</label>
-		            <input class="slider col" type="range" min="-3" max="3" value="0" id="EasterY" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Y.pos:</label>
-		            <input class="slider col" type="range" min="-3.2" max="2.8" value="-0.2" id="CarY" step="0.1" autocomplete="off">
-		        </div>
-		    </div>
+            <div class="text-white row">
+                <div class="col-4 row">
+                    <label class="col-2">X.pos:</label>
+                    <input class="slider col align-self-center" type="range" min="-9.5" max="4.5" value="-2.5" id="KangarooX" step="0.1" autocomplete="off">
+                </div>
+                <div class="col-4 row">
+                    <label class="col-2">X.pos:</label>
+                    <input class="slider col align-self-center" type="range" min="-7" max="7" value="0" id="EasterX" step="0.1" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">X.pos:</label>
+                    <input class="slider col" type="range" min="-10000" max="10000" value="0" id="CarX" step="0.1" autocomplete="off">
+                </div>
+            </div>
+                
+            <div class="text-white row">
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Y.pos:</label>
+                    <input class="slider col" type="range" min="-0.7" max="5.3" value="2.3" id="KangarooY" step="0.1" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Y.pos:</label>
+                    <input class="slider col" type="range" min="-3" max="3" value="0" id="EasterY" step="0.1" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Y.pos:</label>
+                    <input class="slider col" type="range" min="-4000" max="4000" value="0" id="CarY" step="0.1" autocomplete="off">
+                </div>
+            </div>
 
-		    <div class="text-white row">
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Z.pos:</label>
-		            <input class="slider col" type="range" min="-20" max="0" value="-10" id="KangarooZ" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Z.pos:</label>
-		            <input class="slider col" type="range" min="-20" max="0" value="-10" id="EasterZ" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Z.pos:</label>
-		            <input class="slider col" type="range" min="-20" max="0" value="-10" id="CarZ" step="0.1" autocomplete="off">
-		        </div>
-		    </div>
+            <div class="text-white row">
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Z.pos:</label>
+                    <input class="slider col" type="range" min="-20" max="0" value="-10" id="KangarooZ" step="0.1" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Z.pos:</label>
+                    <input class="slider col" type="range" min="0" max="360" value="180" id="EasterZ" step="1" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Z.pos:</label>
+                    <input class="slider col" type="range" min="-3000" max="-1000" value="-2000" id="CarZ" step="0.1" autocomplete="off">
+                </div>
+            </div>
 
-		    <div class="text-white row">
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Size:</label>
-		            <input class="slider col" type="range" min="1" max="8" value="4.5" id="KangarooSize" step="0.1" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Size:</label>
-		            <input class="slider col" type="range" min="1" max="3" value="2" id="EasterSize" step="0.01" autocomplete="off">
-		        </div>
-		        <div class="col-4 row align-items-center">
-		            <label class="col-2">Size:</label>
-		            <input class="slider col" type="range" min="1" max="8" value="4.5" id="CarSize" step="0.1" autocomplete="off">
-		        </div>
-		    </div>
-		</div>
-	</div>
-	<br/>
+            <div class="text-white row">
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Size:</label>
+                    <input class="slider col" type="range" min="1" max="8" value="4.5" id="KangarooSize" step="0.1" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Size:</label>
+                    <input class="slider col" type="range" min="1" max="3" value="2" id="EasterSize" step="0.01" autocomplete="off">
+                </div>
+                <div class="col-4 row align-items-center">
+                    <label class="col-2">Size:</label>
+                    <input class="slider col" type="range" min="0.1" max="20" value="11" id="CarSize" step="0.1" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+    <br/>
 
-			
+            
 
 </div>
 
