@@ -735,6 +735,7 @@
 
 
     var teapotAngle = 180;
+    // var on = 0;
 
     function drawScene(index) {     //ok
         // console.log("drawScene");
@@ -751,15 +752,19 @@
 
 
         mat4.identity(mvMatrix);
+        // var on = 0;
+        // var checkbox = document.getElementById("move");
+        // if (checkbox.checked) { on = 1 }
+        // else { on = 0 }
 
         if (index == 2) {
             // var ballCycle = 80;
             // var ballVar = 10;
             function shake(time){
-                // var t;
-
-                // var t = (time / ballCycle) % 1.0;
                 var v = 3;
+                // var checkbox = document.getElementById("move");
+                // if (checkbox.checked) { on = 1 }
+                // else { on = 0 }
                 if (time <= 500) {
                     return time * v;
                 }
@@ -769,10 +774,14 @@
             }
             // mat4.identity(mvMatrix);
             // mat4.translate(mvMatrix, [7.3, -1.7, -7]);
+            
             mat4.translate(mvMatrix, [-shake(timeFromStart), 0, 0]);
             // mat4.rotate(mvMatrix, degToRad(-90), [1, 0, 0]);
             // mat4.rotate(mvMatrix, degToRad(shake(timeFromStart)), [0, -1, 0]);
         }
+        // else {
+        //     mat4.translate(mvMatrix, [-shake(timeFromStart), 0, 0]);
+        // }
 
         // 這裡是設定xy位置
         if (index == -1) {
@@ -866,7 +875,12 @@
         var timeNow = new Date().getTime();
         if (lastTime != 0) {
             var elapsed = timeNow - lastTime;
-            timeFromStart = (timeFromStart + 0.05 * elapsed) % timeTotal;
+            // var on = 0;
+            var checkbox = document.getElementById("move");
+            if (checkbox.checked) {
+                timeFromStart = (timeFromStart + 0.05 * elapsed) % timeTotal;
+            }
+            
         }
         lastTime = timeNow;
     }
@@ -921,7 +935,12 @@
     <br/>
     <div class="row">
         <div class="col-1">
-            <button onclick="clearCanvas()" type="button" class="form-control btn btn-outline-light">Clean up</button>
+            <button onclick="clearCanvas()" type="button" class="form-control btn btn-outline-light">Clean up</button><div class="col-2 row align-items-center">
+                <label class="text-white switch">Move:
+                    <input type="checkbox" checked id="move">
+                    <span class="button round"></span>
+                </label>
+            </div>
             <!-- <button onclick="postdata()" type="button" class="form-control btn btn-outline-light">Post Data</button> -->
         </div>
         <div class="col-11">
