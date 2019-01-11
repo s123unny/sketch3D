@@ -790,7 +790,7 @@
             // mat4.rotate(mvMatrix[1], degToRad(-100), [0, 0, 1]);
             mat4.rotate(mvMatrix, degToRad(jumpRot(timeFromStart)), [1, 0, 0]);
         }
-        switch(index) {
+        switch(index % 3) {
             case 0:
             mat4.rotate(mvMatrix, degToRad(jumpRot(timeFromStart)), [1, 0, 0]);
             case 1:
@@ -849,11 +849,12 @@
         mat4.rotate(mvMatrix, degToRad(-270), [1, 0, 0]);
         mat4.rotate(mvMatrix, degToRad(180), [0, 1, 0]);
         // if (index == 2) { mat4.rotate(mvMatrix, degToRad(95), [0, 0, 1]); }
-        
+
         var angleZ = document.getElementById("EasterZ").value;
         var angleY = document.getElementById("EasterY").value;
         var angleX = document.getElementById("EasterX").value;
         // angle = 350; 
+        mat4.rotate(mvMatrix, degToRad(teapotAngle), [0, 0, 1]);    //[以x為轉軸, 以y為轉軸, 以z為轉軸]
         mat4.rotate(mvMatrix, degToRad(angleZ), [0, 0, 1]);    //[以x為轉軸, 以y為轉軸, 以z為轉軸]
         mat4.rotate(mvMatrix, degToRad(angleY), [0, 1, 0]);    //[以x為轉軸, 以y為轉軸, 以z為轉軸]
         mat4.rotate(mvMatrix, degToRad(angleX), [1, 0, 0]);    //[以x為轉軸, 以y為轉軸, 以z為轉軸]
@@ -895,6 +896,7 @@
             var checkbox = document.getElementById("move");
             if (checkbox.checked) {
                 timeFromStart = (timeFromStart + 0.05 * elapsed) % timeTotal;
+                teapotAngle -= 0.03 * elapsed;
             }
             
         }
