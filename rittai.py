@@ -49,7 +49,8 @@ class rt(object):
 	def SpineUp(self):
 		#print (self.totalSpine)
 		spineup = []
-		for i in self.totalSpine:
+		disl = [[] for i in range(len(self.totalSpine))]
+		for idx, i in enumerate(self.totalSpine):
 			for j in i:
 				key = str(j)
 				neibor = self.spine2other[key]
@@ -58,11 +59,30 @@ class rt(object):
 				for k in neibor:	
 					dis += distance(j, self.points[k])
 				dis = dis / count
+				disl[idx].append(dis)
+		print("disl = ", disl)
+				# list_for_append = []
+				# l = str(j)
+				# list_for_append.append(l)
+				# list_for_append.append(dis)
+				# spineup.append(list_for_append)
+		for idx, i in enumerate(disl):
+			for jdx, j in enumerate(i):
+				#print(type(idx), type(j))
+				if jdx == 0:
+					if jdx == len(i) - 1:
+						continue
+					modify = (2 * j + disl[idx][jdx + 1]) / 3
+				elif jdx == len(i) - 1:
+					modify = (2 * j + disl[idx][jdx - 1]) / 3
+				else:
+					modify = (2 * j + disl[idx][jdx - 1] + disl[idx][jdx + 1]) / 4
+				l = str(self.totalSpine[idx][jdx])
 				list_for_append = []
-				l = str(j)
 				list_for_append.append(l)
-				list_for_append.append(dis)
+				list_for_append.append(modify)
 				spineup.append(list_for_append)
+		print("spine = ", spineup)
 		self.spineup = spineup
 		'''
 		print ("")
@@ -515,12 +535,12 @@ class rt(object):
 		ax.add_collection3d(Poly3DCollection(poly3d, facecolors='w', linewidths=0.5, alpha=0.5))
 		ax.add_collection3d(Line3DCollection(poly3d, colors='k', linewidths=0.1, linestyles="solid"))
 
-		LEN = len(self.vertex)
-		normal = []
-		for i in range(LEN):
-			normal.append(self.vertex[i] + 50*self.norm[i])
-		plotnorm = [[self.vertex[i], normal[i] ] for i in range(LEN)]
-		ax.add_collection3d(Line3DCollection(plotnorm, colors='k', linewidths=0.1, linestyles="solid"))
+		#LEN = len(self.vertex)
+		#normal = []
+		#for i in range(LEN):
+			#normal.append(self.vertex[i] + 50*self.norm[i])
+		#plotnorm = [[self.vertex[i], normal[i] ] for i in range(LEN)]
+		#ax.add_collection3d(Line3DCollection(plotnorm, colors='k', linewidths=0.1, linestyles="solid"))
 		tmp = [[[x[0], x[1], 0] for x in s] for s in self.totalSpine]
 		# ax.add_collection3d(Line3DCollection(tmp, colors='b', linewidths=0.5, linestyles="solid"))
 		#print(len(self.totalSpine))
@@ -553,8 +573,8 @@ class rt(object):
 		#print(self.vertex)
 		self.MakeTri()
 		self.vertex = np.asarray(list(self.vertex.values()))
-		b = np.array([440, 367, 16])
-		self.vertex = self.vertex - b
+		#b = np.array([440, 367, 16])
+		#self.vertex = self.vertex - b
 		self.face = np.asarray([[ int(reverse(x, self.TLen)) for x in face] for face in self.face])
 		#print(self.face)
 		self.Normal()
