@@ -573,8 +573,8 @@ class rt(object):
 		#print(self.vertex)
 		self.MakeTri()
 		self.vertex = np.asarray(list(self.vertex.values()))
-		#b = np.array([440, 367, 16])
-		#self.vertex = self.vertex - b
+		b = np.array([440, 367, 16])
+		self.vertex = self.vertex - b
 		self.face = np.asarray([[ int(reverse(x, self.TLen)) for x in face] for face in self.face])
 		#print(self.face)
 		self.Normal()
